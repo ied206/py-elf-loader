@@ -6,6 +6,8 @@ import os
 import hexdump
 import struct
 
+import elf
+
 # I hate euc-kr!
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -35,9 +37,8 @@ def main():
         exit(1)
 
     # read elf file
-    fp = open(target, mode='rb')
-    data = fp.read(os.path.getsize(target))
-    fp.close()
+    ctx = elf.ElfCtx(target)
+    ctx.print_elf_info()
 
     # manipulate binary data - use struct
 
