@@ -1,6 +1,9 @@
 # Folder
 res/
 .idea/
+# test binary
+sample.elf
+test
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
