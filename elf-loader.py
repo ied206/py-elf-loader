@@ -45,7 +45,7 @@ def main():
     # allocate buffer with POSIX system call
     buf = c_void_p(None)
     clib = cdll.LoadLibrary('libc.so.6')
-    #clib.posix_memalign(byref(buf), ctx.align, ctx.memsz)
+    clib.posix_memalign(byref(buf), ctx.align, ctx.memsz)
     clib.mprotect(byref(buf), ctx.memsz, 7)
     ctx.base_load_vaddr = buf
     ctx.base_load_paddr = buf
