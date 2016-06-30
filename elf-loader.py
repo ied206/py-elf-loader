@@ -3,7 +3,8 @@
 import sys
 import argparse
 import os
-import hexdump
+from ctypes import *
+
 import struct
 
 import elf
@@ -39,6 +40,16 @@ def main():
     # read elf file
     ctx = elf.ElfCtx(target)
     ctx.print_elf_info()
+    ctx.parse_section_header()
+
+    # allocate buffer with POSIX system call
+    buf = c_void_p(None)
+    clib = cdll.LoadLibrary('libc.so.6')
+    #clib.posix_memalign(byref(buf), ctx.align, ctx.memsz)
+    clib.mprotect(byref(buf), ctx.memsz, 7)
+    ctx.base_load_vaddr = buf
+    ctx.base_load_paddr = buf
+    print buf.value
 
     # manipulate binary data - use struct
 

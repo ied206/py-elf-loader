@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
+# this loader only support amd64
+
 import sys
 import os
 import struct
 from ctypes import *
+import hexdump
 
 ELF_e_endian_LITTLE = 1
 ELF_e_endian_BIG = 2
@@ -30,6 +33,11 @@ class ElfCtx:
     e_shentsize = 0
     e_shnum = 0
     e_shstrndx = 0
+    base_load_vaddr = 0
+    base_load_paddr = 0
+    align = 0
+    memsz = 0
+    sec = []
 
     def __init__(self, filename):
         # read from file
@@ -95,8 +103,6 @@ class ElfCtx:
         self.e_shnum = struct.unpack("<H", self.data[0x3C:0x3E])[0]
         self.e_shstrndx = struct.unpack("<H", self.data[0x3E:0x40])[0]
 
-        # currently this only support amd64
-
     def print_elf_info(self):
         tmp = ''
         print "Filename    : {0}".format(self.filename)
@@ -114,4 +120,26 @@ class ElfCtx:
         if self.e_machine == ELF_e_machine_AMD64:
             tmp = 'AMD64'
         print "e_machine     : {0}".format(tmp)
-        print "EntryPorint : 0x%012X" % (self.e_entry.value)
+
+        print "EntryPorint : 0x%012X\n" % (self.e_entry.value)
+        print "Program Header Offset : 0x%012X" % (self.e_phoff.value)
+        print "Program Header Entry  : {0} entries".format(self.e_phnum)
+        print "Section Header Offset : 0x%012X" % (self.e_shoff.value)
+        print "Section Header Entry  : {0} entries".format(self.e_shnum)
+        print "Section Header NDX    : {0}".format(self.e_shstrndx)
+
+
+    def parse_section_header(self):
+        b = self.e_shoff.value # b for base
+        print hexdump.dump(self.data[b + self.e_shentsize:b + self.e_shentsize * 2], 2)
+        for i in range(self.e_shnum):
+            # self.sec.append({'name':0, 'type':0, 'flags':0, 'address':0, 'offset':0, 'size':0})
+            self.sec.append({})
+            self.sec[i]['name'] = struct.unpack("<I", self.data[b:b + 0x04])[0]
+            self.sec[i]['type'] = struct.unpack("<I", self.data[b + 0x04:b + 0x08])[0]
+            self.sec[i]['flags'] = struct.unpack("<I", self.data[b + 0x08:b + 0x0C])[0]
+            self.sec[i]['address'] = struct.unpack("<I", self.data[b + 0x0C:b + 0x10])[0]
+            self.sec[i]['offset'] = struct.unpack("<I", self.data[b + 0x10:b + 0x14])[0]
+            self.sec[i]['size'] = struct.unpack("<I", self.data[b + 0x14:b + 0x18])[0]
+            b = b + self.e_shentsize
+            print "[{0}] {1}".format(i, self.sec[i])
