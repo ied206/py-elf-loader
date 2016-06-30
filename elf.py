@@ -21,6 +21,8 @@ class ElfCtx:
     filetype = 0
     machine = 0
     entrypoint = 0
+    phdroff = 0
+    shdroff = 0
 
     def __init__(self, filename):
         # read from file
@@ -70,9 +72,12 @@ class ElfCtx:
         else:
             print "[ERR] Wrong ELF arch : {0}".format(ord(self.data[0x12]))
             exit(1)
-
-        # read entry point)
+        # read entry point
         self.entrypoint = c_void_p(struct.unpack("<Q", self.data[0x18:0x20])[0])
+        # program header table
+        self.phdroff = c_void_p(struct.unpack("<Q", self.data[0x20:0x28])[0])
+        # section header table
+        self.shdroff = c_void_p(struct.unpack("<Q", self.data[0x28:0x30])[0])
 
         # currently this only support amd64
 
