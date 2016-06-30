@@ -3,6 +3,8 @@
 
 import sys
 import os
+import struct
+from ctypes import *
 
 ELF_ENDIAN_LITTLE = 1
 ELF_ENDIAN_BIG = 2
@@ -69,24 +71,26 @@ class ElfCtx:
             print "[ERR] Wrong ELF arch : {0}".format(ord(self.data[0x12]))
             exit(1)
 
-        # read entry point
+        # read entry point)
+        self.entrypoint = c_void_p(struct.unpack("<Q", self.data[0x18:0x20])[0])
 
         # currently this only support amd64
 
     def print_elf_info(self):
         tmp = ''
-        print "Filename : {0}".format(self.filename)
-        print "Bitness  : {0}".format(self.bitness)
+        print "Filename    : {0}".format(self.filename)
+        print "Bitness     : {0}".format(self.bitness)
         if self.endian == ELF_ENDIAN_LITTLE:
             tmp = 'Little Endian'
-        print "Endian   : {0}".format(tmp)
+        print "Endian      : {0}".format(tmp)
         tmp = ''
         if self.filetype == ELF_FILETYPE_EXEC:
             tmp = 'Executable'
         elif self.filetype == ELF_FILETYPE_SHARED:
             tmp = 'Shared'
-        print "Type     : {0}".format(tmp)
+        print "Type        : {0}".format(tmp)
         tmp = ''
         if self.machine == ELF_MACHINE_AMD64:
             tmp = 'AMD64'
-        print "Machine  : {0}".format(tmp)
+        print "Machine     : {0}".format(tmp)
+        print "EntryPorint : 0x%012X" % (self.entrypoint.value)
